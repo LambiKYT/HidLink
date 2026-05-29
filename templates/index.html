@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<title>HidLink</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ctext y='14' font-size='14'%3E%F0%9F%96%A5%EF%B8%8F%3C/text%3E%3C/svg%3E">
+<style>
+  *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+  :root{
+    --bg:#0b0e14;
+    --glass:rgba(255,255,255,.07);
+    --glass-border:rgba(255,255,255,.1);
+    --glass-hover:rgba(255,255,255,.13);
+    --text:#eaeef5;
+    --text-dim:#8a93a8;
+    --accent:#6c8cff;
+    --accent-glow:rgba(108,140,255,.3);
+    --green:#34d399;
+    --red:#f87171;
+    --radius:16px;
+    --max-w:480px
+  }
+  html,body{height:100%}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+    background:var(--bg);
+    color:var(--text);
+    display:flex;justify-content:center;
+    padding:16px 12px 32px;
+    -webkit-tap-highlight-color:transparent
+  }
+  .container{width:100%;max-width:var(--max-w)}
+  h1{
+    font-size:22px;font-weight:600;letter-spacing:-.3px;
+    padding:20px 0 6px;
+    display:flex;align-items:center;gap:8px
+  }
+  h1 small{font-size:12px;font-weight:400;color:var(--text-dim)}
+  .subtitle{font-size:13px;color:var(--text-dim);margin-bottom:20px}
+
+  /* Glass card */
+  .card{
+    background:var(--glass);
+    backdrop-filter:blur(14px);
+    -webkit-backdrop-filter:blur(14px);
+    border:1px solid var(--glass-border);
+    border-radius:var(--radius);
+    padding:16px;
+    margin-bottom:14px
+  }
+  .card-title{font-size:13px;font-weight:500;color:var(--text-dim);margin-bottom:12px}
+
+  /* Stats row */
+  .stats-row{display:flex;gap:12px}
+  .stat{
+    flex:1;
+    background:var(--glass);
+    backdrop-filter:blur(8px);
+    -webkit-backdrop-filter:blur(8px);
+    border:1px solid var(--glass-border);
+    border-radius:12px;
+    padding:14px 12px;
+    text-align:center;
+    transition:background .2s
+  }
+  .stat-value{font-size:28px;font-weight:700;line-height:1.2}
+  .stat-value.cpu{color:var(--accent)}
+  .stat-value.ram{color:var(--green)}
+  .stat-label{font-size:11px;color:var(--text-dim);margin-top:2px;text-transform:uppercase;letter-spacing:.5px}
+  .stat-bar{
+    height:4px;border-radius:4px;background:rgba(255,255,255,.06);
+    margin-top:8px;overflow:hidden
+  }
+  .stat-bar-fill{
+    height:100%;border-radius:4px;transition:width .6s ease
+  }
+  .stat-bar-fill.cpu{background:var(--accent)}
+  .stat-bar-fill.ram{background:var(--green)}
+
+  /* Screenshot */
+  #screenshot-wrap{
+    position:relative;
+    border-radius:12px;overflow:hidden;
+    background:rgba(0,0,0,.3);
+    aspect-ratio:16/10;
+    display:flex;align-items:center;justify-content:center;
+    cursor:pointer;
+    border:1px solid var(--glass-border)
+  }
+  #screenshot-wrap img{
+    width:100%;height:100%;object-fit:contain;
+    display:block;
+    transition:opacity .3s
+  }
+  #screenshot-wrap .overlay{
+    position:absolute;inset:0;
+    display:flex;align-items:center;justify-content:center;
+    background:rgba(0,0,0,.4);
+    opacity:0;transition:opacity .2s;
+    pointer-events:none;
+    font-size:13px;color:var(--text-dim)
+  }
+  #screenshot-wrap:active .overlay{opacity:1}
+  .screenshot-label{
+    display:flex;justify-content:space-between;
+    align-items:center;margin-bottom:8px
+  }
+  .screenshot-label span{font-size:12px;color:var(--text-dim)}
+
+  /* Buttons grid */
+  .btn-grid{display:grid;gap:10px}
+  .btn-grid.two{grid-template-columns:1fr 1fr}
+  .btn-grid.four{grid-template-columns:1fr 1fr 1fr 1fr}
+  .btn{
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    gap:4px;
+    background:var(--glass);
+    backdrop-filter:blur(8px);
+    -webkit-backdrop-filter:blur(8px);
+    border:1px solid var(--glass-border);
+    border-radius:14px;
+    padding:14px 6px;
+    font-size:12px;font-weight:500;color:var(--text);
+    cursor:pointer;
+    transition:background .15s,transform .1s,border-color .2s;
+    -webkit-user-select:none;user-select:none;
+    touch-action:manipulation
+  }
+  .btn:active{transform:scale(.95)}
+  .btn .icon{font-size:24px;line-height:1}
+  .btn.volume{
+    background:rgba(108,140,255,.12);
+    border-color:rgba(108,140,255,.2)
+  }
+  .btn.volume:active{background:rgba(108,140,255,.25)}
+  .btn.danger{
+    background:rgba(248,113,113,.12);
+    border-color:rgba(248,113,113,.2);
+    color:var(--red)
+  }
+  .btn.danger:active{background:rgba(248,113,113,.25)}
+  .btn.warning{
+    background:rgba(251,191,36,.12);
+    border-color:rgba(251,191,36,.2);
+    color:#fbbf24
+  }
+  .btn.warning:active{background:rgba(251,191,36,.25)}
+  .btn:disabled{opacity:.4;pointer-events:none}
+
+  .divider{
+    height:1px;background:var(--glass-border);
+    margin:18px 0
+  }
+
+  .toast{
+    position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
+    background:rgba(0,0,0,.8);
+    backdrop-filter:blur(12px);
+    -webkit-backdrop-filter:blur(12px);
+    border:1px solid var(--glass-border);
+    border-radius:10px;
+    padding:10px 20px;
+    font-size:13px;
+    opacity:0;transition:opacity .3s;
+    pointer-events:none;
+    z-index:100
+  }
+  .toast.show{opacity:1}
+</style>
+</head>
+<body>
+
+<div class="container">
+  <h1>&#x1F5A5;&#xFE0F; HidLink <small>v1.0</small></h1>
+  <p class="subtitle">&#x1F4F1; Удалённое управление ПК</p>
+
+  <!-- Stats -->
+  <div class="stats-row">
+    <div class="stat">
+      <div class="stat-value cpu" id="cpu-val">0%</div>
+      <div class="stat-label">CPU</div>
+      <div class="stat-bar"><div class="stat-bar-fill cpu" id="cpu-bar" style="width:0%"></div></div>
+    </div>
+    <div class="stat">
+      <div class="stat-value ram" id="ram-val">0%</div>
+      <div class="stat-label">RAM</div>
+      <div class="stat-bar"><div class="stat-bar-fill ram" id="ram-bar" style="width:0%"></div></div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- Screenshot -->
+  <div class="card">
+    <div class="screenshot-label">
+      <div class="card-title" style="margin-bottom:0">&#x1F4F7; Экран ПК</div>
+      <span id="screenshot-ts">—</span>
+    </div>
+    <div id="screenshot-wrap">
+      <img id="screenshot-img" src="" alt="screenshot">
+      <div class="overlay">&#x1F504; Обновить</div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- Sound -->
+  <div class="card">
+    <div class="card-title">&#x1F50A; Звук</div>
+    <div class="btn-grid two">
+      <div class="btn volume" data-cmd="volume_down">
+        <span class="icon">&#x1F509;</span> Тише
+      </div>
+      <div class="btn volume" data-cmd="volume_up">
+        <span class="icon">&#x1F50A;</span> Громче
+      </div>
+    </div>
+  </div>
+
+  <!-- Power -->
+  <div class="card">
+    <div class="card-title">&#x26A1; Питание</div>
+    <div class="btn-grid two">
+      <div class="btn warning" data-cmd="sleep">
+        <span class="icon">&#x1F4A4;</span> Сон
+      </div>
+      <div class="btn danger" data-cmd="lock">
+        <span class="icon">&#x1F512;</span> Блокировка
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const API = '';
+const toastEl = document.getElementById('toast');
+let toastTimer = null;
+
+function showToast(msg) {
+  toastEl.textContent = msg;
+  toastEl.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toastEl.classList.remove('show'), 2000);
+}
+
+// ---- Stats ----
+async function fetchStats() {
+  try {
+    const r = await fetch(API + '/api/stats');
+    if (!r.ok) throw new Error(r.status);
+    const d = await r.json();
+    document.getElementById('cpu-val').textContent = d.cpu + '%';
+    document.getElementById('cpu-bar').style.width = d.cpu + '%';
+    document.getElementById('ram-val').textContent = d.ram + '%';
+    document.getElementById('ram-bar').style.width = d.ram + '%';
+  } catch { /* silently retry */ }
+}
+
+// ---- Screenshot ----
+async function refreshScreenshot() {
+  const wrap = document.getElementById('screenshot-wrap');
+  const img = document.getElementById('screenshot-img');
+  const ts = document.getElementById('screenshot-ts');
+  const t = Date.now();
+  img.src = API + '/api/screenshot?_=' + t;
+  img.onload = () => { ts.textContent = new Date().toLocaleTimeString(); };
+  img.onerror = () => { showToast('Ошибка загрузки скриншота'); };
+}
+
+document.getElementById('screenshot-wrap').addEventListener('click', refreshScreenshot);
+
+// ---- Commands ----
+document.querySelectorAll('.btn[data-cmd]').forEach(el => {
+  el.addEventListener('click', async function () {
+    const cmd = this.dataset.cmd;
+    this.style.pointerEvents = 'none';
+    try {
+      const r = await fetch(API + '/api/command/' + cmd);
+      const d = await r.json();
+      if (d.status === 'ok') showToast('&#x2705; ' + cmd);
+      else showToast('&#x274C; ' + (d.message || 'Ошибка'));
+    } catch {
+      showToast('&#x274C; Ошибка сети');
+    }
+    this.style.pointerEvents = '';
+  });
+});
+
+// ---- Init ----
+fetchStats();
+refreshScreenshot();
+
+setInterval(fetchStats, 3000);
+setInterval(refreshScreenshot, 10000);
+</script>
+</body>
+</html>
