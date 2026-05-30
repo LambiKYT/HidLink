@@ -3,3 +3,9 @@ __pycache__/
 .venv/
 venv/
 .env
+.idea/
+*.sqlite
+db.sqlite*
+launcher.log
+error.log
+config.json

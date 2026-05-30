@@ -1,92 +1,75 @@
-# 🖥️ HidLink
+# HidLink
 
-**Удалённое управление ПК с мобильного телефона через веб-интерфейс.**
+Remote PC management from your phone via browser — no app install required.
 
-HidLink — это лёгкая система для частичного мониторинга и управления Windows-компьютером
-напрямую с экрана смартфона. Всё работает через браузер: никаких приложений на телефоне
-ставить не нужно.
+HidLink turns your Windows machine into a personal cloud server with a real-time dashboard. Monitor CPU/RAM/disk, view screenshots, browse files, run terminal commands, control system functions, and automate tasks — all through a glassmorphism PWA that looks native on mobile.
 
 ---
 
-## Возможности
+## Features
 
-- **Мониторинг** — загрузка CPU и ОЗУ в реальном времени (обновление каждые 3 с).
-- **Скриншот экрана** — просмотр рабочего стола ПК с телефона (обновление по таймеру
-  или по нажатию).
-- **Управление звуком** — прибавление / убавление громкости.
-- **Питание** — блокировка Windows и перевод в спящий режим.
-- **Адаптивный интерфейс** — Glassmorphism-дизайн, оптимизированный для мобильных экранов.
-
----
-
-## Стек технологий
-
-| Компонент   | Технология                      |
-|-------------|---------------------------------|
-| Бэкенд      | Python 3.12+, FastAPI, Uvicorn  |
-| Фронтенд    | HTML + CSS (Glassmorphism) + JS |
-| Системные   | psutil, pyautogui, ctypes       |
-| Туннель     | zrok (в WSL)                    |
+- **Real‑time monitoring** — CPU, RAM, disk usage, top processes, CPU temperatures
+- **Screenshots** — View your desktop live from your phone
+- **File manager** — Browse, download, and upload files securely
+- **Terminal** — Execute CMD commands remotely with time‑limited sessions
+- **System control** — Lock, sleep, kill processes, adjust volume
+- **Clipboard** — Read and write clipboard text remotely
+- **Macros** — Pre‑configured one‑click command sequences
+- **PWA** — Add to home screen, works offline (cached UI)
+- **Tunnel support** — localtunnel (zero‑config) or Cloudflare Tunnel (persistent)
+- **Brute‑force protection** — Rate‑limited auth with SQLite‑backed session management
 
 ---
 
-## Установка и запуск
+## Stack
 
-### 1. Установите Python-зависимости
+| Component  | Technology |
+|-----------|-----------|
+| Backend   | Python 3.12+, FastAPI, Uvicorn |
+| Frontend  | HTML / CSS (Glassmorphism) / Vanilla JS |
+| Charts    | Chart.js 4.x (self‑hosted, offline) |
+| System    | psutil, pyautogui, ctypes |
+| Auth      | Token sessions (SQLite, persistent) |
+| Tunnel    | localtunnel (default) / Cloudflare Tunnel |
+| PWA       | Manifest + Service Worker (offline cache) |
+
+---
+
+## Quick Start
 
 ```bash
 pip install -r requirements.txt
+python launcher.py
 ```
 
-### 2. Запустите сервер
+Open the printed URL on your phone and enter PIN **0000**.
 
-```bash
-python server.py
-```
-
-Сервер будет слушать на `http://0.0.0.0:8000`.
-
-Для проверки откройте в браузере на том же ПК:
-[http://127.0.0.1:8000](http://127.0.0.1:8000)
-
-### 3. Проброс туннеля через WSL (zrok)
-
-Убедитесь, что zrok установлен в WSL и выполнен `zrok enable <токен>`.
-
-Внутри WSL выполните:
-
-```bash
-zrok share public http://10.255.255.254:8000
-```
-
-После этого zrok выдаст публичный URL вида `https://<hash>.share.zrok.io`,
-который можно открыть на любом телефоне.
-
-> **Почему `10.255.255.254:8000`?**  
-> Это локальный IP-адрес хостовой Windows, который автоматически назначается
-> интерфейсу WSL. Сервер в Windows слушает порт 8000 на `0.0.0.0`,
-> поэтому zrok из WSL обращается к нему по этому адресу.
+[Full install guide →](INSTALL.md)
 
 ---
 
-## API-эндпоинты
+## Tunnel Modes
 
-| Метод | Путь                    | Описание                            |
-|-------|-------------------------|-------------------------------------|
-| GET   | `/`                     | Главная страница (фронтенд)         |
-| GET   | `/api/stats`            | CPU, RAM в процентах                |
-| GET   | `/api/screenshot`       | Скриншот экрана (JPEG, Quality 65)  |
-| GET   | `/api/command/lock`     | Блокировка Windows                  |
-| GET   | `/api/command/sleep`    | Спящий режим                        |
-| GET   | `/api/command/volume_up`  | Громче                            |
-| GET   | `/api/command/volume_down` | Тише                             |
+| Variable                | Mode | Setup |
+|-------------------------|------|-------|
+| `TUNNEL_MODE=localtunnel` | **Zero‑config** (default) | No extra install — uses `npx localtunnel` |
+| `TUNNEL_MODE=cloudflare`  | **Persistent URL** | Install [`cloudflared`](https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/downloads/) and optionally set `CLOUDFLARE_TOKEN` |
 
 ---
 
-## Примечания
+## Security
 
-- Управление возможно только на **Windows** (используются Win32 API через ctypes).
-- Если экран заблокирован, `pyautogui` может не сделать скриншот — вернётся ошибка 503.
-- Для работы `pyautogui` может потребоваться запуск от имени администратора
-  (зависит от настроек UAC).
-- Протестировано на Python 3.12+ и Windows 10/11.
+- PIN is read from `.env` — never hardcoded
+- Session tokens stored in SQLite with configurable TTL
+- Brute‑force lockout: 5 failed attempts → 60s block per IP
+- All requests require token except `/api/verify-pin`
+- Path traversal prevented via `os.path.commonpath` verification
+- CORS restricted to localhost and tunnel origin
+- Security headers: CSP, X‑Frame‑Options, X‑Content‑Type‑Options, Referrer‑Policy
+- EOL in terminal: LF and null‑byte sanitisation
+
+---
+
+## License
+
+MIT © 2026 HidLink

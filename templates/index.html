@@ -3,298 +3,936 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
-<title>HidLink</title>
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ctext y='14' font-size='14'%3E%F0%9F%96%A5%EF%B8%8F%3C/text%3E%3C/svg%3E">
+<title>HidLink v3.3</title>
+<meta name="theme-color" content="#080b12">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="/static/manifest.json">
+<link rel="icon" type="image/png" sizes="192x192" href="/static/img/icon-192.png">
+<link rel="icon" type="image/png" sizes="512x512" href="/static/img/icon-512.png">
+<link rel="apple-touch-icon" href="/static/img/icon-192.png">
+<script src="/static/js/chart.min.js"></script>
 <style>
-  *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
-  :root{
-    --bg:#0b0e14;
-    --glass:rgba(255,255,255,.07);
-    --glass-border:rgba(255,255,255,.1);
-    --glass-hover:rgba(255,255,255,.13);
-    --text:#eaeef5;
-    --text-dim:#8a93a8;
-    --accent:#6c8cff;
-    --accent-glow:rgba(108,140,255,.3);
-    --green:#34d399;
-    --red:#f87171;
-    --radius:16px;
-    --max-w:480px
-  }
-  html,body{height:100%}
-  body{
-    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
-    background:var(--bg);
-    color:var(--text);
-    display:flex;justify-content:center;
-    padding:16px 12px 32px;
-    -webkit-tap-highlight-color:transparent
-  }
-  .container{width:100%;max-width:var(--max-w)}
-  h1{
-    font-size:22px;font-weight:600;letter-spacing:-.3px;
-    padding:20px 0 6px;
-    display:flex;align-items:center;gap:8px
-  }
-  h1 small{font-size:12px;font-weight:400;color:var(--text-dim)}
-  .subtitle{font-size:13px;color:var(--text-dim);margin-bottom:20px}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#080b12;
+  --surface:rgba(255,255,255,.04);
+  --glass:rgba(255,255,255,.06);
+  --glass-hover:rgba(255,255,255,.11);
+  --glass-border:rgba(255,255,255,.08);
+  --text:#eaedf5;
+  --text-dim:#7a8398;
+  --accent:#5b7dff;
+  --accent-glow:rgba(91,125,255,.25);
+  --green:#22c55e;
+  --red:#ef4444;
+  --yellow:#eab308;
+  --radius:14px;
+  --max-w:480px;
+  --nav-h:62px;
+  --safe-bottom:env(safe-area-inset-bottom,0px)
+}
+html,body{height:100%;overflow-x:hidden}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  display:flex;justify-content:center;
+  -webkit-tap-highlight-color:transparent;
+  position:relative;
+  padding-bottom:calc(var(--nav-h) + var(--safe-bottom) + 12px)
+}
+.container{width:100%;max-width:var(--max-w);padding:16px 14px 0}
 
-  /* Glass card */
-  .card{
-    background:var(--glass);
-    backdrop-filter:blur(14px);
-    -webkit-backdrop-filter:blur(14px);
-    border:1px solid var(--glass-border);
-    border-radius:var(--radius);
-    padding:16px;
-    margin-bottom:14px
-  }
-  .card-title{font-size:13px;font-weight:500;color:var(--text-dim);margin-bottom:12px}
+@keyframes fadeSlideUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+@keyframes spin{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
+.tab-content{animation:fadeSlideUp .35s ease-out}
 
-  /* Stats row */
-  .stats-row{display:flex;gap:12px}
-  .stat{
-    flex:1;
-    background:var(--glass);
-    backdrop-filter:blur(8px);
-    -webkit-backdrop-filter:blur(8px);
-    border:1px solid var(--glass-border);
-    border-radius:12px;
-    padding:14px 12px;
-    text-align:center;
-    transition:background .2s
-  }
-  .stat-value{font-size:28px;font-weight:700;line-height:1.2}
-  .stat-value.cpu{color:var(--accent)}
-  .stat-value.ram{color:var(--green)}
-  .stat-label{font-size:11px;color:var(--text-dim);margin-top:2px;text-transform:uppercase;letter-spacing:.5px}
-  .stat-bar{
-    height:4px;border-radius:4px;background:rgba(255,255,255,.06);
-    margin-top:8px;overflow:hidden
-  }
-  .stat-bar-fill{
-    height:100%;border-radius:4px;transition:width .6s ease
-  }
-  .stat-bar-fill.cpu{background:var(--accent)}
-  .stat-bar-fill.ram{background:var(--green)}
+.card{
+  background:var(--glass);
+  backdrop-filter:blur(15px);-webkit-backdrop-filter:blur(15px);
+  border:1px solid var(--glass-border);
+  border-radius:var(--radius);padding:16px;margin-bottom:12px;
+  transition:background .2s,border-color .2s
+}
+.card-title{
+  font-size:12px;font-weight:500;color:var(--text-dim);
+  margin-bottom:12px;letter-spacing:.3px;text-transform:uppercase
+}
 
-  /* Screenshot */
-  #screenshot-wrap{
-    position:relative;
-    border-radius:12px;overflow:hidden;
-    background:rgba(0,0,0,.3);
-    aspect-ratio:16/10;
-    display:flex;align-items:center;justify-content:center;
-    cursor:pointer;
-    border:1px solid var(--glass-border)
-  }
-  #screenshot-wrap img{
-    width:100%;height:100%;object-fit:contain;
-    display:block;
-    transition:opacity .3s
-  }
-  #screenshot-wrap .overlay{
-    position:absolute;inset:0;
-    display:flex;align-items:center;justify-content:center;
-    background:rgba(0,0,0,.4);
-    opacity:0;transition:opacity .2s;
-    pointer-events:none;
-    font-size:13px;color:var(--text-dim)
-  }
-  #screenshot-wrap:active .overlay{opacity:1}
-  .screenshot-label{
-    display:flex;justify-content:space-between;
-    align-items:center;margin-bottom:8px
-  }
-  .screenshot-label span{font-size:12px;color:var(--text-dim)}
+#lock-screen{
+  position:fixed;inset:0;z-index:999;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  background:var(--bg);padding:24px
+}
+#lock-screen.hidden{display:none}
+#lock-screen h1{font-size:26px;margin-bottom:2px}
+#lock-screen .sub{font-size:13px;color:var(--text-dim);margin-bottom:28px}
+#lock-display{
+  font-size:34px;font-weight:700;letter-spacing:14px;
+  background:var(--glass);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  border:1px solid var(--glass-border);
+  border-radius:var(--radius);padding:14px 28px;margin-bottom:22px;
+  width:210px;text-align:center;min-height:58px;line-height:1;
+  font-variant-numeric:tabular-nums
+}
+#lock-display .cursor{animation:blink 1s step-end infinite;opacity:.4}
+@keyframes blink{50%{opacity:0}}
+#lock-error{font-size:13px;color:var(--red);min-height:20px;margin-bottom:6px}
+.pin-grid{display:grid;grid-template-columns:repeat(3,70px);gap:10px;justify-content:center}
+.pin-key{
+  height:54px;border-radius:14px;
+  background:var(--glass);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+  border:1px solid var(--glass-border);
+  color:var(--text);font-size:22px;font-weight:600;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;transition:background .12s,transform .08s;
+  touch-action:manipulation;-webkit-user-select:none;user-select:none
+}
+.pin-key:active{transform:scale(.92);background:var(--glass-hover)}
+.pin-key.empty{background:transparent;border-color:transparent;pointer-events:none}
+.pin-key.back{font-size:17px}
 
-  /* Buttons grid */
-  .btn-grid{display:grid;gap:10px}
-  .btn-grid.two{grid-template-columns:1fr 1fr}
-  .btn-grid.four{grid-template-columns:1fr 1fr 1fr 1fr}
-  .btn{
-    display:flex;flex-direction:column;align-items:center;justify-content:center;
-    gap:4px;
-    background:var(--glass);
-    backdrop-filter:blur(8px);
-    -webkit-backdrop-filter:blur(8px);
-    border:1px solid var(--glass-border);
-    border-radius:14px;
-    padding:14px 6px;
-    font-size:12px;font-weight:500;color:var(--text);
-    cursor:pointer;
-    transition:background .15s,transform .1s,border-color .2s;
-    -webkit-user-select:none;user-select:none;
-    touch-action:manipulation
-  }
-  .btn:active{transform:scale(.95)}
-  .btn .icon{font-size:24px;line-height:1}
-  .btn.volume{
-    background:rgba(108,140,255,.12);
-    border-color:rgba(108,140,255,.2)
-  }
-  .btn.volume:active{background:rgba(108,140,255,.25)}
-  .btn.danger{
-    background:rgba(248,113,113,.12);
-    border-color:rgba(248,113,113,.2);
-    color:var(--red)
-  }
-  .btn.danger:active{background:rgba(248,113,113,.25)}
-  .btn.warning{
-    background:rgba(251,191,36,.12);
-    border-color:rgba(251,191,36,.2);
-    color:#fbbf24
-  }
-  .btn.warning:active{background:rgba(251,191,36,.25)}
-  .btn:disabled{opacity:.4;pointer-events:none}
+.app-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:18px 0 4px;margin-bottom:14px
+}
+.app-header h1{font-size:20px;font-weight:600;letter-spacing:-.3px}
+.app-header h1 span{color:var(--accent)}
+.app-header small{font-size:10px;color:var(--text-dim);font-weight:400}
 
-  .divider{
-    height:1px;background:var(--glass-border);
-    margin:18px 0
-  }
+.stats-row{display:flex;gap:10px}
+.stat{
+  flex:1;background:var(--surface);border:1px solid var(--glass-border);
+  border-radius:12px;padding:12px 8px;text-align:center
+}
+.stat-value{font-size:22px;font-weight:700;line-height:1.2}
+.stat-value.cpu{color:var(--accent)}.stat-value.ram{color:var(--green)}
+.stat-label{font-size:10px;color:var(--text-dim);margin-top:2px;text-transform:uppercase;letter-spacing:.6px}
 
-  .toast{
-    position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
-    background:rgba(0,0,0,.8);
-    backdrop-filter:blur(12px);
-    -webkit-backdrop-filter:blur(12px);
-    border:1px solid var(--glass-border);
-    border-radius:10px;
-    padding:10px 20px;
-    font-size:13px;
-    opacity:0;transition:opacity .3s;
-    pointer-events:none;
-    z-index:100
-  }
-  .toast.show{opacity:1}
+.chart-row{display:flex;gap:10px}
+.chart-box{
+  flex:1;background:var(--surface);border:1px solid var(--glass-border);
+  border-radius:12px;padding:8px;position:relative;min-height:0
+}
+.chart-box canvas{display:block;width:100%!important;height:100px!important}
+.chart-label{font-size:9px;color:var(--text-dim);text-align:center;margin-top:2px;text-transform:uppercase;letter-spacing:.5px}
+
+.disk-row{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.disk-row:last-child{margin-bottom:0}
+.disk-letter{font-size:12px;font-weight:600;width:20px;flex-shrink:0}
+.disk-bar-wrap{flex:1;height:6px;border-radius:6px;background:rgba(255,255,255,.06);overflow:hidden}
+.disk-bar-fill{height:100%;border-radius:6px;background:var(--yellow);transition:width .5s ease}
+.disk-info{font-size:10px;color:var(--text-dim);width:72px;text-align:right;flex-shrink:0}
+
+.btn-grid{display:grid;gap:8px}
+.btn-grid.two{grid-template-columns:1fr 1fr}
+.btn-grid.three{grid-template-columns:1fr 1fr 1fr}
+.btn{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
+  background:var(--glass);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+  border:1px solid var(--glass-border);
+  border-radius:12px;padding:12px 4px;
+  font-size:11px;font-weight:500;color:var(--text);cursor:pointer;
+  transition:background .15s,transform .1s,box-shadow .2s;
+  touch-action:manipulation;-webkit-user-select:none;user-select:none
+}
+.btn:active{transform:scale(.95)}
+.btn .icon{font-size:20px;line-height:1}
+.btn.volume{background:rgba(91,125,255,.1);border-color:rgba(91,125,255,.18)}
+.btn.volume:active{background:rgba(91,125,255,.25);box-shadow:0 0 18px var(--accent-glow)}
+.btn.media{background:rgba(91,125,255,.07);border-color:rgba(91,125,255,.13)}
+.btn.media:active{background:rgba(91,125,255,.2);box-shadow:0 0 14px var(--accent-glow)}
+.btn.danger{background:rgba(239,68,68,.1);border-color:rgba(239,68,68,.18);color:var(--red)}
+.btn.danger:active{background:rgba(239,68,68,.25);box-shadow:0 0 14px rgba(239,68,68,.25)}
+.btn.warning{background:rgba(234,179,8,.1);border-color:rgba(234,179,8,.18);color:var(--yellow)}
+.btn.warning:active{background:rgba(234,179,8,.25);box-shadow:0 0 14px rgba(234,179,8,.2)}
+.btn.ghost{background:transparent;border-color:transparent;color:var(--text-dim)}
+.btn:disabled{opacity:.35;pointer-events:none}
+
+.btn.loading .btn-label{visibility:hidden}
+.btn.loading::after{
+  content:'';position:absolute;width:16px;height:16px;
+  border:2px solid rgba(255,255,255,.3);border-top-color:var(--accent);
+  border-radius:50%;animation:spin .6s linear infinite
+}
+.btn{position:relative}
+
+#screenshot-wrap{
+  position:relative;border-radius:10px;overflow:hidden;
+  background:rgba(0,0,0,.35);aspect-ratio:16/10;
+  display:flex;align-items:center;justify-content:center;cursor:pointer;
+  border:1px solid var(--glass-border)
+}
+#screenshot-wrap img{width:100%;height:100%;object-fit:contain;display:block;transition:opacity .3s}
+#screenshot-wrap .overlay{
+  position:absolute;inset:0;
+  display:flex;align-items:center;justify-content:center;
+  background:rgba(0,0,0,.4);opacity:0;transition:opacity .2s;
+  pointer-events:none;font-size:12px;color:var(--text-dim)
+}
+#screenshot-wrap:active .overlay{opacity:1}
+.screenshot-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.screenshot-head span{font-size:11px;color:var(--text-dim)}
+
+.proc-item{
+  display:flex;align-items:center;gap:8px;
+  padding:7px 0;border-bottom:1px solid rgba(255,255,255,.04)
+}
+.proc-item:last-child{border-bottom:none}
+.proc-name{flex:1;font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.proc-cpu{font-size:10px;color:var(--text-dim);width:36px;text-align:right}
+.proc-kill{
+  width:30px;height:30px;border-radius:8px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  background:rgba(239,68,68,.1);border:none;color:var(--red);font-size:12px;cursor:pointer;
+  transition:background .15s
+}
+.proc-kill:active{background:rgba(239,68,68,.3)}
+.empty-state{font-size:12px;color:var(--text-dim);text-align:center;padding:10px 0}
+
+.clip-row{display:flex;gap:8px;margin-top:8px;align-items:center}
+.clip-row input{
+  flex:1;background:var(--surface);border:1px solid var(--glass-border);
+  border-radius:10px;padding:9px 12px;color:var(--text);font-size:13px;outline:none
+}
+.clip-row input::placeholder{color:var(--text-dim)}
+.clip-text{
+  font-size:12px;color:var(--text-dim);
+  background:var(--surface);border-radius:10px;
+  padding:9px 12px;word-break:break-all;margin-top:8px;min-height:18px
+}
+.clip-actions{display:flex;gap:6px;margin-top:6px}
+.clip-actions .btn{font-size:11px;padding:8px 12px;flex-direction:row}
+
+.term-box{
+  background:rgba(0,0,0,.45);border:1px solid var(--glass-border);
+  border-radius:10px;padding:10px 12px;
+  font-family:Menlo,Consolas,'Courier New',monospace;font-size:11px;
+  max-height:180px;overflow-y:auto;white-space:pre-wrap;word-break:break-all;
+  color:#b8c6d6;margin-bottom:8px;min-height:36px;line-height:1.5
+}
+.term-row{display:flex;gap:8px}
+.term-row input{
+  flex:1;background:var(--surface);border:1px solid var(--glass-border);
+  border-radius:10px;padding:9px 12px;color:var(--text);font-size:13px;
+  outline:none;font-family:Menlo,Consolas,'Courier New',monospace
+}
+.term-row input::placeholder{color:var(--text-dim)}
+
+.fm-path{
+  display:flex;align-items:center;gap:6px;margin-bottom:10px;
+  font-size:11px;color:var(--text-dim);word-break:break-all
+}
+.fm-path .btn{font-size:15px;padding:4px 6px;flex-shrink:0}
+.fm-entry{
+  display:flex;align-items:center;gap:8px;padding:7px 0;
+  border-bottom:1px solid rgba(255,255,255,.04);cursor:pointer;
+  transition:background .1s;border-radius:6px;margin:0 -6px;padding:7px 6px
+}
+.fm-entry:active{background:var(--glass-hover)}
+.fm-entry .icon{font-size:16px;width:20px;text-align:center;flex-shrink:0}
+.fm-entry .name{flex:1;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fm-entry .meta{font-size:10px;color:var(--text-dim);flex-shrink:0}
+.fm-upload{display:flex;gap:8px;margin-top:10px;align-items:center}
+.fm-upload input[type=file]{display:none}
+.fm-upload .btn{font-size:11px;padding:8px 14px;flex-direction:row}
+
+.macro-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.macro-btn{
+  background:var(--glass);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+  border:1px solid var(--glass-border);
+  border-radius:12px;padding:14px 8px;text-align:center;
+  font-size:12px;font-weight:500;color:var(--text);cursor:pointer;
+  transition:background .15s,transform .1s,box-shadow .2s;
+  touch-action:manipulation;-webkit-user-select:none;user-select:none;
+  min-height:52px;display:flex;align-items:center;justify-content:center;gap:4px
+}
+.macro-btn:active{transform:scale(.95);background:var(--glass-hover);box-shadow:0 0 16px var(--accent-glow)}
+.macro-output{
+  background:rgba(0,0,0,.45);border:1px solid var(--glass-border);
+  border-radius:10px;padding:10px 12px;margin-top:10px;
+  font-family:Menlo,Consolas,'Courier New',monospace;font-size:11px;
+  max-height:150px;overflow-y:auto;white-space:pre-wrap;word-break:break-all;
+  color:#b8c6d6;display:none
+}
+
+.divider{height:1px;background:rgba(255,255,255,.05);margin:16px 0}
+
+.bottom-nav{
+  position:fixed;bottom:0;left:0;right:0;z-index:100;
+  background:rgba(8,11,18,.85);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+  border-top:1px solid var(--glass-border);
+  display:flex;justify-content:center;
+  padding:6px calc(8px + var(--safe-bottom));
+  height:calc(var(--nav-h) + var(--safe-bottom))
+}
+.bottom-nav-inner{display:flex;gap:2px;max-width:var(--max-w);width:100%}
+.nav-item{
+  flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:2px;padding:6px 0 4px;
+  border-radius:10px;border:none;background:transparent;
+  color:var(--text-dim);font-size:10px;cursor:pointer;
+  transition:color .2s,background .2s;
+  touch-action:manipulation;-webkit-user-select:none;user-select:none
+}
+.nav-item .icon{font-size:20px;line-height:1}
+.nav-item.active{color:var(--accent);background:rgba(91,125,255,.08)}
+.nav-item:active{background:rgba(255,255,255,.04)}
+
+.tab-pane{display:none;animation:fadeSlideUp .35s ease-out}
+.tab-pane.active{display:block}
+
+.footer-note{text-align:center;padding:8px 0 4px;font-size:10px;color:var(--text-dim);opacity:.4;letter-spacing:.5px}
+
+.toast{
+  position:fixed;bottom:calc(var(--nav-h) + var(--safe-bottom) + 14px);
+  left:50%;transform:translateX(-50%);
+  background:rgba(0,0,0,.85);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  border:1px solid var(--glass-border);
+  border-radius:10px;padding:9px 18px;font-size:12px;
+  opacity:0;transition:opacity .3s;pointer-events:none;z-index:200;
+  text-align:center;max-width:85vw
+}
+.toast.show{opacity:1}
 </style>
 </head>
 <body>
 
-<div class="container">
-  <h1>&#x1F5A5;&#xFE0F; HidLink <small>v1.0</small></h1>
-  <p class="subtitle">&#x1F4F1; Удалённое управление ПК</p>
-
-  <!-- Stats -->
-  <div class="stats-row">
-    <div class="stat">
-      <div class="stat-value cpu" id="cpu-val">0%</div>
-      <div class="stat-label">CPU</div>
-      <div class="stat-bar"><div class="stat-bar-fill cpu" id="cpu-bar" style="width:0%"></div></div>
-    </div>
-    <div class="stat">
-      <div class="stat-value ram" id="ram-val">0%</div>
-      <div class="stat-label">RAM</div>
-      <div class="stat-bar"><div class="stat-bar-fill ram" id="ram-bar" style="width:0%"></div></div>
-    </div>
-  </div>
-
-  <div class="divider"></div>
-
-  <!-- Screenshot -->
-  <div class="card">
-    <div class="screenshot-label">
-      <div class="card-title" style="margin-bottom:0">&#x1F4F7; Экран ПК</div>
-      <span id="screenshot-ts">—</span>
-    </div>
-    <div id="screenshot-wrap">
-      <img id="screenshot-img" src="" alt="screenshot">
-      <div class="overlay">&#x1F504; Обновить</div>
-    </div>
-  </div>
-
-  <div class="divider"></div>
-
-  <!-- Sound -->
-  <div class="card">
-    <div class="card-title">&#x1F50A; Звук</div>
-    <div class="btn-grid two">
-      <div class="btn volume" data-cmd="volume_down">
-        <span class="icon">&#x1F509;</span> Тише
-      </div>
-      <div class="btn volume" data-cmd="volume_up">
-        <span class="icon">&#x1F50A;</span> Громче
-      </div>
-    </div>
-  </div>
-
-  <!-- Power -->
-  <div class="card">
-    <div class="card-title">&#x26A1; Питание</div>
-    <div class="btn-grid two">
-      <div class="btn warning" data-cmd="sleep">
-        <span class="icon">&#x1F4A4;</span> Сон
-      </div>
-      <div class="btn danger" data-cmd="lock">
-        <span class="icon">&#x1F512;</span> Блокировка
-      </div>
-    </div>
-  </div>
+<!-- ========== PIN LOCK SCREEN ========== -->
+<div id="lock-screen">
+  <h1>&#x1F5A5;&#xFE0F; HidLink</h1>
+  <p class="sub">&#x1F511; Введите PIN для доступа</p>
+  <div id="lock-display"><span id="pin-dots"></span><span class="cursor">&#x2502;</span></div>
+  <div id="lock-error"></div>
+  <div class="pin-grid" id="pin-grid"></div>
 </div>
 
+<!-- ========== DASHBOARD ========== -->
+<div class="container" id="dashboard" style="display:none">
+
+  <div class="app-header">
+    <h1><span>&#x1F5A5;&#xFE0F;</span> HidLink <small>v3.2</small></h1>
+    <div style="display:flex;gap:6px">
+      <div class="btn ghost" id="disconnect-btn" style="font-size:16px;padding:4px 8px" title="Выйти">&#x1F6AA;</div>
+    </div>
+  </div>
+
+  <!-- ===== TAB: MONITOR ===== -->
+  <div class="tab-pane active" id="tab-monitor">
+    <div class="card tab-content">
+      <div class="card-title">&#x1F4CA; Загрузка системы</div>
+      <div class="stats-row" style="margin-bottom:10px">
+        <div class="stat"><div class="stat-value cpu" id="cpu-val">0%</div><div class="stat-label">CPU</div></div>
+        <div class="stat"><div class="stat-value ram" id="ram-val">0%</div><div class="stat-label">RAM</div></div>
+      </div>
+      <div class="chart-row">
+        <div class="chart-box"><canvas id="cpuChart"></canvas><div class="chart-label">CPU</div></div>
+        <div class="chart-box"><canvas id="ramChart"></canvas><div class="chart-label">RAM</div></div>
+      </div>
+    </div>
+
+    <div class="card tab-content">
+      <div class="card-title">&#x1F4BE; Накопители</div>
+      <div id="disk-container"></div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="card tab-content">
+      <div class="screenshot-head">
+        <div class="card-title" style="margin-bottom:0">&#x1F4F7; Экран ПК</div>
+        <span id="screenshot-ts">&mdash;</span>
+      </div>
+      <div id="screenshot-wrap">
+        <img id="screenshot-img" src="" alt="screenshot">
+        <div class="overlay">&#x1F504; Обновить</div>
+      </div>
+    </div>
+
+    <div class="card tab-content">
+      <div class="card-title">&#x1F3B5; Медиа</div>
+      <div class="btn-grid three">
+        <div class="btn media" data-cmd="media_prev"><span class="btn-label"><span class="icon">&#x23EE;&#xFE0F;</span> Назад</span></div>
+        <div class="btn media" data-cmd="play_pause"><span class="btn-label"><span class="icon">&#x25B6;&#xFE0F;/&#x23F8;&#xFE0F;</span> Плей</span></div>
+        <div class="btn media" data-cmd="media_next"><span class="btn-label"><span class="icon">&#x23ED;&#xFE0F;</span> Вперед</span></div>
+      </div>
+    </div>
+
+    <div class="card tab-content">
+      <div class="card-title">&#x1F50A; Звук и питание</div>
+      <div class="btn-grid two" style="margin-bottom:6px">
+        <div class="btn volume" data-cmd="volume_down"><span class="btn-label"><span class="icon">&#x1F509;</span> Тише</span></div>
+        <div class="btn volume" data-cmd="volume_up"><span class="btn-label"><span class="icon">&#x1F50A;</span> Громче</span></div>
+      </div>
+      <div class="btn-grid two">
+        <div class="btn warning" data-cmd="sleep"><span class="btn-label"><span class="icon">&#x1F4A4;</span> Сон</span></div>
+        <div class="btn danger" data-cmd="lock"><span class="btn-label"><span class="icon">&#x1F512;</span> Блокировка</span></div>
+      </div>
+    </div>
+
+    <div class="card tab-content">
+      <div class="card-title">&#x2699;&#xFE0F; Процессы (топ CPU)</div>
+      <div id="proc-container"><div class="empty-state">Загрузка...</div></div>
+    </div>
+
+    <div class="card tab-content">
+      <div class="card-title">&#x1F4CB; Буфер обмена</div>
+      <div id="clipboard-text" class="clip-text">Нажмите «Получить»</div>
+      <div class="clip-actions">
+        <div class="btn ghost" id="clip-get-btn"><span class="btn-label">&#x1F4E5; Получить</span></div>
+        <div class="btn ghost" id="clip-clear-btn"><span class="btn-label">Очистить</span></div>
+      </div>
+      <div class="clip-row">
+        <input type="text" id="clip-input" placeholder="Текст для копирования на ПК">
+        <div class="btn ghost" id="clip-send-btn" style="flex-shrink:0;padding:8px 12px;flex-direction:row"><span class="btn-label">&#x1F4E4;</span></div>
+      </div>
+    </div>
+
+    <div class="card tab-content">
+      <div class="card-title">&#x1F4BB; Удалённый терминал</div>
+      <div class="term-box" id="term-output">&#x25B7; Введите команду</div>
+      <div class="term-row">
+        <input type="text" id="term-input" placeholder="ipconfig, ping 8.8.8.8 ..." spellcheck="false">
+        <div class="btn ghost" id="term-run-btn" style="flex-shrink:0;padding:8px 14px;flex-direction:row"><span class="btn-label">&#x23CE;</span></div>
+      </div>
+    </div>
+
+    <div class="footer-note">HidLink v3.2 &mdash; Production Ready</div>
+  </div>
+
+  <!-- ===== TAB: FILES ===== -->
+  <div class="tab-pane" id="tab-files">
+    <div class="card tab-content">
+      <div class="card-title">&#x1F4C1; Файловый менеджер</div>
+      <div id="fm-path" class="fm-path">
+        <div class="btn ghost" id="fm-back-btn" style="padding:4px 8px;font-size:16px">&#x1F519;</div>
+        <span id="fm-current-path">C:\</span>
+      </div>
+      <div id="fm-entries"></div>
+      <div class="fm-upload">
+        <div class="btn" id="fm-upload-btn"><span class="btn-label">&#x2795; Загрузить файл</span></div>
+        <input type="file" id="fm-file-input">
+      </div>
+    </div>
+    <div class="footer-note">HidLink v3.2 &mdash; Production Ready</div>
+  </div>
+
+  <!-- ===== TAB: MACROS ===== -->
+  <div class="tab-pane" id="tab-macros">
+    <div class="card tab-content">
+      <div class="card-title">&#x26A1; Макросы</div>
+      <div class="macro-grid" id="macro-grid"></div>
+      <div id="macro-output" class="macro-output"></div>
+    </div>
+    <div class="footer-note">HidLink v3.2 &mdash; Production Ready</div>
+  </div>
+
+</div>
+
+<!-- ========== BOTTOM NAV ========== -->
+<nav class="bottom-nav">
+  <div class="bottom-nav-inner">
+    <button class="nav-item active" data-tab="monitor"><span class="icon">&#x1F4CA;</span> Монитор</button>
+    <button class="nav-item" data-tab="files"><span class="icon">&#x1F4C1;</span> Файлы</button>
+    <button class="nav-item" data-tab="macros"><span class="icon">&#x26A1;</span> Макросы</button>
+  </div>
+</nav>
+
+<!-- ========== TOAST ========== -->
 <div class="toast" id="toast"></div>
 
 <script>
+// ==================================================================
+// Config
+// ==================================================================
 const API = '';
+const TOKEN_KEY = 'hidlink_token';
+let token = localStorage.getItem(TOKEN_KEY) || '';
+
+// ==================================================================
+// Helpers
+// ==================================================================
 const toastEl = document.getElementById('toast');
 let toastTimer = null;
-
-function showToast(msg) {
-  toastEl.textContent = msg;
-  toastEl.classList.add('show');
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => toastEl.classList.remove('show'), 2000);
+function showToast(msg, dur) {
+  toastEl.textContent = msg; toastEl.classList.add('show');
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => toastEl.classList.remove('show'), dur || 2000);
 }
 
-// ---- Stats ----
+async function apiPost(path, data) {
+  if (data === undefined) data = {};
+  data.token = token;
+  const r = await fetch(API + path, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+  if (r.status === 401) { clearAuth(); throw new Error('unauthorized'); }
+  if (!r.ok) throw new Error(r.status);
+  return r;
+}
+async function apiPostJSON(path, data) {
+  const r = await apiPost(path, data);
+  return r.json();
+}
+async function apiPostBlob(path, data) {
+  const r = await apiPost(path, data);
+  return r.blob();
+}
+
+function setBtnLoading(btn, loading) {
+  if (loading) btn.classList.add('loading');
+  else btn.classList.remove('loading');
+}
+
+// ==================================================================
+// Auth
+// ==================================================================
+function clearAuth() {
+  token = ''; localStorage.removeItem(TOKEN_KEY);
+  document.getElementById('lock-screen').classList.remove('hidden');
+  document.getElementById('dashboard').style.display = 'none';
+}
+async function tryAuth(savedToken) {
+  if (!savedToken) return false;
+  token = savedToken;
+  try {
+    const r = await apiPost('/api/stats', {});
+    if (r.ok) { onAuth(); return true; }
+  } catch {}
+  clearAuth(); return false;
+}
+function onAuth() {
+  localStorage.setItem(TOKEN_KEY, token);
+  document.getElementById('lock-screen').classList.add('hidden');
+  document.getElementById('dashboard').style.display = 'block';
+  try { initDashboard(); } catch (e) { console.error(e); }
+}
+document.getElementById('disconnect-btn').addEventListener('click', clearAuth);
+
+// --- PIN keypad ---
+const pinDots = document.getElementById('pin-dots');
+const pinError = document.getElementById('lock-error');
+let pinInput = '';
+const MAX_PIN = 4;
+function renderPinGrid() {
+  const g = document.getElementById('pin-grid'); g.innerHTML = '';
+  const keys = ['1','2','3','4','5','6','7','8','9','','0','\u232B'];
+  keys.forEach(k => {
+    const el = document.createElement('div');
+    el.className = 'pin-key';
+    if (!k) { el.classList.add('empty'); el.textContent = ''; }
+    else if (k === '\u232B') { el.classList.add('back'); el.textContent = '\u232B'; }
+    else { el.textContent = k; }
+    el.dataset.key = k;
+    el.addEventListener('click', () => pinPress(k));
+    g.appendChild(el);
+  });
+}
+function pinPress(k) {
+  pinError.textContent = '';
+  if (k === '\u232B') { pinInput = pinInput.slice(0, -1); }
+  else if (pinInput.length < MAX_PIN) { pinInput += k; }
+  updatePinDisplay();
+  if (pinInput.length === MAX_PIN) verifyPin();
+}
+function updatePinDisplay() {
+  pinDots.textContent = '\u2022'.repeat(pinInput.length) + ' '.repeat(MAX_PIN - pinInput.length);
+}
+async function verifyPin() {
+  try {
+    const r = await fetch('/api/verify-pin', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ pin: pinInput }),
+    });
+    if (!r.ok) throw new Error(r.status === 403 ? 'wrong' : String(r.status));
+    const d = await r.json();
+    if (d.token) { token = d.token; onAuth(); pinInput = ''; updatePinDisplay(); }
+  } catch (e) {
+    const msg = e.message === 'wrong' ? 'Неверный PIN' : 'Ошибка соединения с сервером';
+    pinError.textContent = msg; pinInput = ''; updatePinDisplay();
+    setTimeout(() => pinError.textContent = '', 2000);
+  }
+}
+renderPinGrid(); updatePinDisplay();
+tryAuth(token);
+
+// ==================================================================
+// Dashboard
+// ==================================================================
+let fetchStatsInterval, fetchScreenshotInterval, fetchProcessesInterval;
+let dashboardInitialized = false;
+function initDashboard() {
+  if (dashboardInitialized) return;
+  dashboardInitialized = true;
+  initCharts();
+  fetchStats(); fetchScreenshot(); fetchProcesses(); fetchClipboard();
+  fetchStatsInterval = setInterval(fetchStats, 3000);
+  fetchScreenshotInterval = setInterval(fetchScreenshot, 10000);
+  fetchProcessesInterval = setInterval(fetchProcesses, 5000);
+  initCommands();
+  initScreenshot();
+  initClipboard();
+  initTerminal();
+  initFiles();
+  initMacros();
+  initTabs();
+}
+
+// ==================================================================
+// Tabs
+// ==================================================================
+function initTabs() {
+  document.querySelectorAll('.nav-item').forEach(item => {
+    item.addEventListener('click', () => {
+      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+      item.classList.add('active');
+      document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+      document.getElementById('tab-' + item.dataset.tab).classList.add('active');
+    });
+  });
+}
+
+// ==================================================================
+// Charts
+// ==================================================================
+let cpuChart, ramChart;
+const CHART_POINTS = 30;
+function initCharts() {
+  const opts = {
+    type: 'line',
+    data: {
+      labels: Array(CHART_POINTS).fill(''),
+      datasets: [{
+        data: Array(CHART_POINTS).fill(0),
+        borderColor: '#5b7dff',
+        backgroundColor: 'rgba(91,125,255,.08)',
+        fill: true, tension: .3, pointRadius: 0, borderWidth: 2,
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { display: false, grid: { display: false } },
+        y: { display: false, min: 0, max: 100, grid: { display: false } }
+      },
+      animation: { duration: 400 }
+    }
+  };
+  cpuChart = new Chart(document.getElementById('cpuChart'), JSON.parse(JSON.stringify(opts)));
+  const ramOpts = JSON.parse(JSON.stringify(opts));
+  ramOpts.data.datasets[0].borderColor = '#22c55e';
+  ramOpts.data.datasets[0].backgroundColor = 'rgba(34,197,94,.08)';
+  ramChart = new Chart(document.getElementById('ramChart'), ramOpts);
+}
+function pushChart(chart, val) {
+  chart.data.datasets[0].data.push(val);
+  chart.data.datasets[0].data.shift();
+  chart.update('none');
+}
+
+// ==================================================================
+// Stats
+// ==================================================================
 async function fetchStats() {
   try {
-    const r = await fetch(API + '/api/stats');
-    if (!r.ok) throw new Error(r.status);
-    const d = await r.json();
+    const d = await apiPostJSON('/api/stats', {});
     document.getElementById('cpu-val').textContent = d.cpu + '%';
-    document.getElementById('cpu-bar').style.width = d.cpu + '%';
     document.getElementById('ram-val').textContent = d.ram + '%';
-    document.getElementById('ram-bar').style.width = d.ram + '%';
-  } catch { /* silently retry */ }
+    pushChart(cpuChart, d.cpu);
+    pushChart(ramChart, d.ram);
+    renderDisks(d.disks);
+  } catch {}
+}
+function renderDisks(disks) {
+  const c = document.getElementById('disk-container');
+  if (!disks) { c.innerHTML = '<div class="empty-state">Нет данных</div>'; return; }
+  c.innerHTML = '';
+  for (const [letter, info] of Object.entries(disks)) {
+    if (!info) { c.innerHTML += '<div class="empty-state">' + letter + ': недоступен</div>'; continue; }
+    const div = document.createElement('div'); div.className = 'disk-row';
+    div.innerHTML =
+      '<span class="disk-letter">' + letter + '</span>' +
+      '<div class="disk-bar-wrap"><div class="disk-bar-fill" style="width:' + info.percent + '%"></div></div>' +
+      '<span class="disk-info">' + fmtSize(info.used) + '/' + fmtSize(info.total) + '</span>';
+    c.appendChild(div);
+  }
 }
 
-// ---- Screenshot ----
-async function refreshScreenshot() {
-  const wrap = document.getElementById('screenshot-wrap');
+// ==================================================================
+// Screenshot
+// ==================================================================
+let lastScreenshotUrl = '';
+async function fetchScreenshot() {
   const img = document.getElementById('screenshot-img');
   const ts = document.getElementById('screenshot-ts');
-  const t = Date.now();
-  img.src = API + '/api/screenshot?_=' + t;
-  img.onload = () => { ts.textContent = new Date().toLocaleTimeString(); };
-  img.onerror = () => { showToast('Ошибка загрузки скриншота'); };
+  try {
+    const blob = await apiPostBlob('/api/screenshot', {});
+    if (lastScreenshotUrl) URL.revokeObjectURL(lastScreenshotUrl);
+    const url = URL.createObjectURL(blob);
+    lastScreenshotUrl = url;
+    img.src = url;
+    img.onload = () => { ts.textContent = new Date().toLocaleTimeString(); };
+  } catch {}
+}
+function initScreenshot() {
+  document.getElementById('screenshot-wrap').addEventListener('click', fetchScreenshot);
 }
 
-document.getElementById('screenshot-wrap').addEventListener('click', refreshScreenshot);
-
-// ---- Commands ----
-document.querySelectorAll('.btn[data-cmd]').forEach(el => {
-  el.addEventListener('click', async function () {
-    const cmd = this.dataset.cmd;
-    this.style.pointerEvents = 'none';
-    try {
-      const r = await fetch(API + '/api/command/' + cmd);
-      const d = await r.json();
-      if (d.status === 'ok') showToast('&#x2705; ' + cmd);
-      else showToast('&#x274C; ' + (d.message || 'Ошибка'));
-    } catch {
-      showToast('&#x274C; Ошибка сети');
+// ==================================================================
+// Processes
+// ==================================================================
+async function fetchProcesses() {
+  try {
+    const d = await apiPostJSON('/api/processes', {});
+    const c = document.getElementById('proc-container');
+    if (!d.processes || !d.processes.length) {
+      c.innerHTML = '<div class="empty-state">Нет данных</div>'; return;
     }
-    this.style.pointerEvents = '';
+    c.innerHTML = d.processes.map(p =>
+      '<div class="proc-item">' +
+        '<span class="proc-name">' + esc(p.name) + '</span>' +
+        '<span class="proc-cpu">' + p.cpu + '%</span>' +
+        '<button class="proc-kill" data-pid="' + p.pid + '">\u2715</button>' +
+      '</div>'
+    ).join('');
+    c.querySelectorAll('.proc-kill').forEach(btn => {
+      btn.addEventListener('click', () => killProc(parseInt(btn.dataset.pid)));
+    });
+  } catch {}
+}
+function esc(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+async function killProc(pid) {
+  try {
+    const d = await apiPostJSON('/api/command/kill/' + pid, {});
+    showToast(d.status === 'ok' ? '\u2705 \u041F\u0440\u043E\u0446\u0435\u0441\u0441 \u0437\u0430\u0432\u0435\u0440\u0448\u0451\u043D' : '\u274C ' + (d.message || ''), 2500);
+    fetchProcesses();
+  } catch { showToast('\u274C \u041E\u0448\u0438\u0431\u043A\u0430', 2000); }
+}
+
+// ==================================================================
+// Commands
+// ==================================================================
+function initCommands() {
+  document.querySelectorAll('.btn[data-cmd]').forEach(el => {
+    el.addEventListener('click', async function() {
+      const cmd = this.dataset.cmd;
+      setBtnLoading(this, true);
+      try {
+        const d = await apiPostJSON('/api/command/' + cmd, {});
+        showToast(d.status === 'ok' ? '\u2705 ' + cmd : '\u274C ' + (d.message || ''), 2000);
+      } catch { showToast('\u274C \u041E\u0448\u0438\u0431\u043A\u0430 \u0441\u0435\u0442\u0438', 2000); }
+      setBtnLoading(this, false);
+    });
   });
-});
+}
 
-// ---- Init ----
-fetchStats();
-refreshScreenshot();
+// ==================================================================
+// Clipboard
+// ==================================================================
+async function fetchClipboard() {
+  try {
+    const d = await apiPostJSON('/api/clipboard', {});
+    const el = document.getElementById('clipboard-text');
+    el.textContent = d.text || '(пусто)';
+  } catch {}
+}
+function initClipboard() {
+  document.getElementById('clip-get-btn').addEventListener('click', async function() {
+    setBtnLoading(this, true);
+    try {
+      const d = await apiPostJSON('/api/clipboard', {});
+      document.getElementById('clipboard-text').textContent = d.text || '(пусто)';
+      showToast('\u2705 \u041F\u043E\u043B\u0443\u0447\u0435\u043D\u043E', 1200);
+    } catch { showToast('\u274C \u041E\u0448\u0438\u0431\u043A\u0430', 1200); }
+    setBtnLoading(this, false);
+  });
+  document.getElementById('clip-send-btn').addEventListener('click', async function() {
+    const inp = document.getElementById('clip-input');
+    if (!inp.value.trim()) return;
+    setBtnLoading(this, true);
+    try {
+      await apiPostJSON('/api/clipboard', { text: inp.value });
+      showToast('\u2705 \u0421\u043A\u043E\u043F\u0438\u0440\u043E\u0432\u0430\u043D\u043E', 1200);
+      inp.value = ''; fetchClipboard();
+    } catch { showToast('\u274C \u041E\u0448\u0438\u0431\u043A\u0430', 1200); }
+    setBtnLoading(this, false);
+  });
+  document.getElementById('clip-clear-btn').addEventListener('click', async function() {
+    setBtnLoading(this, true);
+    try {
+      await apiPostJSON('/api/clipboard', { text: '' });
+      document.getElementById('clipboard-text').textContent = '(пусто)';
+      showToast('\u2705 \u041E\u0447\u0438\u0449\u0435\u043D\u043E', 1200);
+    } catch { showToast('\u274C \u041E\u0448\u0438\u0431\u043A\u0430', 1200); }
+    setBtnLoading(this, false);
+  });
+}
 
-setInterval(fetchStats, 3000);
-setInterval(refreshScreenshot, 10000);
+// ==================================================================
+// Terminal
+// ==================================================================
+function initTerminal() {
+  const input = document.getElementById('term-input');
+  const output = document.getElementById('term-output');
+  const runBtn = document.getElementById('term-run-btn');
+  async function run() {
+    const cmd = input.value.trim();
+    if (!cmd) return;
+    setBtnLoading(runBtn, true);
+    output.textContent = '> ' + cmd + '\n\u0412\u044B\u043F\u043E\u043B\u043D\u0435\u043D\u0438\u0435...'; input.value = '';
+    try {
+      const d = await apiPostJSON('/api/terminal', { command: cmd });
+      let lines = '';
+      if (d.stdout) lines += d.stdout;
+      if (d.stderr) lines += '\nSTDERR: ' + d.stderr;
+      lines += '\nExit: ' + d.returncode;
+      output.textContent = '> ' + cmd + '\n' + lines.slice(-3000);
+      output.scrollTop = output.scrollHeight;
+    } catch { output.textContent = '> ' + cmd + '\n\u041E\u0448\u0438\u0431\u043A\u0430 \u0441\u0435\u0442\u0438'; }
+    setBtnLoading(runBtn, false);
+  }
+  runBtn.addEventListener('click', run);
+  input.addEventListener('keydown', e => { if (e.key === 'Enter') run(); });
+}
+
+// ==================================================================
+// File Manager
+// ==================================================================
+let fmCurrentPath = 'C:\\';
+let pathHistory = [];
+async function loadDir(path, skipHistory) {
+  try {
+    const d = await apiPostJSON('/api/files/list', { path: path });
+    if (!skipHistory) pathHistory.push(fmCurrentPath);
+    fmCurrentPath = d.path;
+    document.getElementById('fm-current-path').textContent = d.path;
+    const c = document.getElementById('fm-entries'); c.innerHTML = '';
+    if (d.parent && d.parent !== d.path) {
+      const up = document.createElement('div'); up.className = 'fm-entry';
+      up.innerHTML = '<span class="icon">\uD83D\uDCC2</span><span class="name">..</span><span class="meta"></span>';
+      up.addEventListener('click', () => {
+        pathHistory.pop();
+        loadDir(d.parent, true);
+      });
+      c.appendChild(up);
+    }
+    d.entries.forEach(e => {
+      const el = document.createElement('div'); el.className = 'fm-entry';
+      const icon = e.is_dir ? '\uD83D\uDCC1' : '\uD83D\uDCC4';
+      const meta = e.is_dir ? '' : fmtSize(e.size);
+      el.innerHTML = '<span class="icon">' + icon + '</span><span class="name">' + esc(e.name) + '</span><span class="meta">' + meta + '</span>';
+      el.addEventListener('click', () => {
+        if (e.is_dir) loadDir(e.path);
+        else downloadFile(e.path);
+      });
+      c.appendChild(el);
+    });
+  } catch { showToast('\u274C \u041E\u0448\u0438\u0431\u043A\u0430 \u0437\u0430\u0433\u0440\u0443\u0437\u043A\u0438 \u0434\u0438\u0440\u0435\u043A\u0442\u043E\u0440\u0438\u0438', 2000); }
+}
+async function downloadFile(filepath) {
+  try {
+    const r = await apiPost('/api/files/download', { path: filepath });
+    const blob = await r.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filepath.split('\\').pop() || 'file';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 10000);
+  } catch { showToast('\u274C \u041E\u0448\u0438\u0431\u043A\u0430 \u0441\u043A\u0430\u0447\u0438\u0432\u0430\u043D\u0438\u044F', 2000); }
+}
+function fmtSize(b) {
+  if (b < 1024) return b + ' B';
+  if (b < 1048576) return (b / 1024).toFixed(0) + ' KB';
+  if (b < 1073741824) return (b / 1048576).toFixed(1) + ' MB';
+  if (b < 1099511627776) return (b / 1073741824).toFixed(2) + ' GB';
+  return (b / 1099511627776).toFixed(2) + ' TB';
+}
+function initFiles() {
+  document.getElementById('fm-back-btn').addEventListener('click', () => {
+    if (pathHistory.length > 0) {
+      const prev = pathHistory.pop();
+      loadDir(prev, true);
+    } else {
+      loadDir('C:\\', true);
+    }
+  });
+  document.getElementById('fm-upload-btn').addEventListener('click', () => {
+    document.getElementById('fm-file-input').click();
+  });
+  document.getElementById('fm-file-input').addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const fd = new FormData();
+    fd.append('file', file);
+    fd.append('dest', fmCurrentPath);
+    fd.append('token', token);
+    try {
+      const r = await fetch(API + '/api/files/upload', { method: 'POST', body: fd });
+      if (r.status === 401) { clearAuth(); return; }
+      if (!r.ok) {
+        let msg = 'Ошибка ' + r.status;
+        try { const err = await r.json(); msg = err.detail || msg; } catch {}
+        showToast('\u274C ' + msg, 2000);
+        return;
+      }
+      const d = await r.json();
+      if (d.status === 'ok') { showToast('\u2705 ' + file.name + ' \u0437\u0430\u0433\u0440\u0443\u0436\u0435\u043D', 2000); loadDir(fmCurrentPath, true); }
+      else showToast('\u274C ' + (d.message || ''), 2000);
+    } catch { showToast('\u274C \u041E\u0448\u0438\u0431\u043A\u0430 \u0437\u0430\u0433\u0440\u0443\u0437\u043A\u0438', 2000); }
+    e.target.value = '';
+  });
+  loadDir('C:\\');
+}
+
+// ==================================================================
+// Macros
+// ==================================================================
+function initMacros() {
+  (async () => {
+    try {
+      const d = await apiPostJSON('/api/macros', {});
+      const grid = document.getElementById('macro-grid'); grid.innerHTML = '';
+      if (!d.macros || !d.macros.length) {
+        grid.innerHTML = '<div class="empty-state">\u041D\u0435\u0442 \u043C\u0430\u043A\u0440\u043E\u0441\u043E\u0432 \u0432 config.json</div>'; return;
+      }
+      d.macros.forEach(m => {
+        const btn = document.createElement('div'); btn.className = 'macro-btn';
+        btn.innerHTML = '<span class="btn-label">' + m.name + '</span>';
+        btn.addEventListener('click', async () => {
+          setBtnLoading(btn, true);
+          const out = document.getElementById('macro-output'); out.style.display = 'block';
+          out.textContent = '\u25B6 ' + m.name + '...';
+          try {
+            const d2 = await apiPostJSON('/api/macros/run/' + encodeURIComponent(m.name), {});
+            if (d2.status === 'ok') {
+              let txt = '';
+              if (d2.stdout) txt += d2.stdout;
+              if (d2.stderr) txt += '\n' + d2.stderr;
+              txt += '\nExit: ' + d2.returncode;
+              out.textContent = '> ' + m.name + '\n' + txt;
+            } else {
+              out.textContent = '\u274C ' + (d2.message || '');
+            }
+          } catch { out.textContent = '\u274C \u041E\u0448\u0438\u0431\u043A\u0430 \u0441\u0435\u0442\u0438'; }
+          setBtnLoading(btn, false);
+        });
+        grid.appendChild(btn);
+      });
+    } catch {}
+  })();
+}
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/static/sw.js');
+}
 </script>
 </body>
 </html>
